@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Les utilisateurs ne peuvent lire et écrire que leurs PROPRES données
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Les notes sont protégées (lecture/écriture si la note appartient à l'user connecté)
+    match /notes/{noteId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Les tâches (todo) sont protégées
+    match /tasks/{taskId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Historique de chat IA
+    match /chat_messages/{messageId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Configuration des tags notes
+    match /tag_settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
